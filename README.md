@@ -17,6 +17,11 @@ This project (deparja) provides an **Identity and Access Management (IAM)** syst
   - Password hashing (via `werkzeug.security`)
   - JWT-based authentication for secured endpoints
 
+- **Permissions**: I’ve added roles, but I still need to manage permissions more precisely. For example, I need to define permissions like "create_user" or "view_reports" and assign them to roles.
+- **Access Control Logic**: I need to make sure users can only do what their roles and permissions allow. For instance, if someone tries to access `/api/secure-data`, I’ll add logic to check their permissions first.
+
+- I need to fully implement JWT token validation. Endpoints that require a token, like `/api/secure-data`, should check if the token is valid and hasn’t expired. Some of this is done, but I’ll make sure it works consistently.
+
 ## Endpoints
 ### 1. User Management
 - **Create a new user**
@@ -128,13 +133,6 @@ This project (deparja) provides an **Identity and Access Management (IAM)** syst
 - **JWT Authentication**: Access protected routes by including a valid JWT token in the Authorization header.
 
 ## Missing or Needed Features for a Complete MVP
-
-### Role-Based Access Control (RBAC)
-- **Permissions**: I’ve added roles, but I still need to manage permissions more precisely. For example, I need to define permissions like "create_user" or "view_reports" and assign them to roles.
-- **Access Control Logic**: I need to make sure users can only do what their roles and permissions allow. For instance, if someone tries to access `/api/secure-data`, I’ll add logic to check their permissions first.
-
-### Token Validation
-- I need to fully implement JWT token validation. Endpoints that require a token, like `/api/secure-data`, should check if the token is valid and hasn’t expired. Some of this is done, but I’ll make sure it works consistently.
 
 ### Error Handling & Responses
 - I’ll improve error messages to make them clear and user-friendly. Right now, some error cases, like missing data or invalid tokens, don’t have great responses.
