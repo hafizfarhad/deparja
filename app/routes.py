@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from .models import db, User, Role, UserRole
+from .models import User, Role, Permission, UserRole, RolePermission
 from .utils import generate_jwt, decode_jwt
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app
@@ -110,7 +110,7 @@ def refresh_token():
     return jsonify({"access_token": new_access_token}), 200
 
 # Role-Based Access Control
-def requires_role(role_name):
+def requires_permission(permission_name):
     def decorator(f):
         def wrapper(*args, **kwargs):
             token = request.headers.get('Authorization', '').replace('Bearer ', '')
@@ -123,11 +123,15 @@ def requires_role(role_name):
             if not user:
                 return jsonify({"error": "User not found"}), 404
 
-            role = Role.query.filter_by(role_name=role_name).first()
-            if not role:
-                return jsonify({"error": "Role not found"}), 404
+            # Check if user has a role with the required permission
+            permission = Permission.query.filter_by(permission_name=permission_name).first()
+            if not permission:
+                return jsonify({"error": "Permission not found"}), 404
 
-            if not UserRole.query.filter_by(user_id=user_id, role_id=role.id).first():
+            role_permissions = RolePermission.query.filter_by(permission_id=permission.id).all()
+            role_ids_with_permission = [rp.role_id for rp in role_permissions]
+
+            if not any(UserRole.query.filter_by(user_id=user_id, role_id=role_id).first() for role_id in role_ids_with_permission):
                 return jsonify({"error": "Permission denied"}), 403
 
             return f(*args, **kwargs)
@@ -135,9 +139,9 @@ def requires_role(role_name):
     return decorator
 
 @bp.route('/api/secure-data', methods=['GET'])
-@requires_role('admin')
+@requires_permission('view_secure_data')
 def secure_data():
-    return jsonify({"message": "This is secured data for admins only."}), 200
+    return jsonify({"message": "This is secure data for users with the correct permission."}), 200
 
 @bp.route('/api/password_reset_request', methods=['POST'])
 def request_password_reset():
@@ -169,3 +173,39 @@ def reset_password():
     user.reset_token_expiry = None
     db.session.commit()
     return jsonify({"message": "Password reset successful"}), 200
+
+
+# Create a Permission
+@bp.route('/api/permissions', methods=['POST'])
+def add_permission():
+    data = request.json
+    permission_name = data.get('permission_name')
+
+    if not permission_name:
+        return jsonify({"error": "Permission name is required"}), 400
+
+    if Permission.query.filter_by(permission_name=permission_name).first():
+        return jsonify({"error": "Permission already exists"}), 400
+
+    permission = Permission(permission_name=permission_name)
+    db.session.add(permission)
+    db.session.commit()
+    return jsonify({"message": "Permission created", "permission": {"id": permission.id, "name": permission.permission_name}}), 201
+
+# Assign a Permission to a Role
+@bp.route('/api/role_permissions', methods=['POST'])
+def assign_permission_to_role():
+    data = request.json
+    role_id = data.get('role_id')
+    permission_id = data.get('permission_id')
+
+    if not role_id or not permission_id:
+        return jsonify({"error": "Role ID and Permission ID are required"}), 400
+
+    if RolePermission.query.filter_by(role_id=role_id, permission_id=permission_id).first():
+        return jsonify({"error": "Permission already assigned to role"}), 400
+
+    role_permission = RolePermission(role_id=role_id, permission_id=permission_id)
+    db.session.add(role_permission)
+    db.session.commit()
+    return jsonify({"message": "Permission assigned to role", "role_permission": {"role_id": role_id, "permission_id": permission_id}}), 201

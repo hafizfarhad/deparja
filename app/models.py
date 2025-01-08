@@ -37,3 +37,15 @@ class UserRole(db.Model):
 
     user = db.relationship('User', backref=db.backref('user_roles', lazy=True))
     role = db.relationship('Role', backref=db.backref('user_roles', lazy=True))
+
+class Permission(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    permission_name = db.Column(db.String(100), unique=True, nullable=False)
+
+class RolePermission(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    role_id = db.Column(db.Integer, db.ForeignKey('role.id'), nullable=False)
+    permission_id = db.Column(db.Integer, db.ForeignKey('permission.id'), nullable=False)
+
+    role = db.relationship('Role', backref=db.backref('role_permissions', lazy=True))
+    permission = db.relationship('Permission', backref=db.backref('role_permissions', lazy=True))
