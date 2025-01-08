@@ -1,0 +1,48 @@
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Environment variables and virtual environments
+.env
+*.env
+*.env.*
+venv/
+.envrc
+
+# Logs and debugging files
+*.log
+*.sqlite3
+
+# Editor and IDE files
+.vscode/
+.idea/
+*.swp
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Flask-specific files
+instance/
+*.pid
+
+# JWT secret keys or other sensitive keys
+*.key
+*.crt
+
+# Dependencies
+*.egg-info/
+pip-log.txt
+
+# Test coverage reports
+htmlcov/
+coverage.xml
+*.cover
+*.py,cover
+.cache
+
+# Docker and CI/CD artifacts (if applicable)
+docker-compose.override.yml
+build/
+tmp/
