@@ -1,40 +1,40 @@
-# Identity and Access Management System (deparja)
+# Identity and Access Management System (Deparja)
 
-This project (deparja) provides an **Identity and Access Management (IAM)** system with basic user authentication, role management, and password reset features. The project leverages JWT (JSON Web Tokens) for secure API access and role-based access control (RBAC).
+Deparja provides an **Identity and Access Management (IAM)** system with basic user authentication, role management, and password reset features. The project leverages JWT (JSON Web Tokens) for secure API access and role-based access control (RBAC).
 
 ## Features (MVP)
-- **User Management**
-  - Create users
-  - User login and JWT token generation
-  - Password reset (generate reset token, reset password)
-  
-- **Role Management**
-  - Create roles
-  - Assign roles to users
-  - Role-based access control (RBAC)
+### 1. User Management
+- **Create Users**: Add new users to the system.
+- **User Login & JWT Token Generation**: Secure login with JWT authentication.
+- **Password Reset**: Request a password reset and reset the password.
 
-- **Security**
-  - Password hashing (via `werkzeug.security`)
-  - JWT-based authentication for secured endpoints
+### 2. Role Management
+- **Create Roles**: Add roles like "admin", "user", etc.
+- **Assign Roles to Users**: Assign roles to users for access control.
+- **Role-Based Access Control (RBAC)**: Protect API endpoints using roles.
 
-- **Permissions**: I’ve added roles, and manage permissions more precisely. For example, I've defined permissions like "create_user" or "view_reports" and assigned them to roles.
-- **Access Control Logic**: I need to make sure users can only do what their roles and permissions allow. For instance, if someone tries to access `/api/secure-data`, I’ll add logic to check their permissions first.
+### 3. Permission Management
+- **Permissions Assignment**: Assign permissions like `create_user`, `view_reports` to roles.
 
-- I need to fully implement JWT token validation. Endpoints that require a token, like `/api/secure-data`, should check if the token is valid and hasn’t expired. Some of this is done, but I’ll make sure it works consistently.
+### 4. Security Features
+- **Password Hashing**: Passwords are hashed for security using `werkzeug.security`.
+- **JWT Authentication**: Use JWT for protecting endpoints.
 
-- **Error Handling & Responses**
-- I’ll improve error messages to make them clear and user-friendly. Right now, some error cases, like missing data or invalid tokens, don’t have great responses.
-- For `/api/roles` and `/api/user_roles`, I’ll handle duplicate roles or role assignments better by returning specific error messages (like "400 Bad Request").
+### 5. Logging & Monitoring
+- **Logging**: Track failed login attempts, expired tokens, and security issues.
+- **Rate-Limiting**: Prevent brute-force attacks with rate-limiting for API endpoints.
 
-- **User and Role Management**
-- I’ll add features to update and delete users or roles, like `/api/users/{id}` or `/api/roles/{id}`.
-- I’ll also allow removing role assignments, for example with `/api/user_roles/{user_id}/{role_id}`.
+### 6. Error Handling & Responses
+- Improved error messages for cases like missing data or invalid tokens.
+- Handle role duplication or assignment issues with specific error messages like "400 Bad Request".
 
-- **Password Hashing and Security**
-- I already hash passwords before saving them, but I’ll double-check to ensure no plain-text passwords are ever exposed anywhere.
-
+### 7. User & Role Management Enhancements
+- **Update and Delete Users**: Modify or remove users through endpoints like `/api/users/{id}`.
+- **Update and Delete Roles**: Modify or remove roles using `/api/roles/{id}`.
+- **Remove Role Assignments**: Remove roles from users via `/api/user_roles/{user_id}/{role_id}`.
 
 ## Endpoints
+
 ### 1. User Management
 - **Create a new user**
   - `POST /api/users`
@@ -47,78 +47,78 @@ This project (deparja) provides an **Identity and Access Management (IAM)** syst
     { "message": "User created", "user": { "id": 1, "username": "testuser" } }
     ```
 
-- **User login (Generate JWT token)**
+- **User Login (Generate JWT token)**
   - `POST /api/login`
-  - Request: 
+  - Request:
     ```json
     { "username": "testuser", "password": "Test@1234" }
     ```
-  - Response: 
+  - Response:
     ```json
     { "access_token": "jwt_token", "refresh_token": "jwt_refresh_token" }
     ```
 
-- **Password reset request**
+- **Password Reset Request**
   - `POST /api/password_reset_request`
-  - Request: 
+  - Request:
     ```json
     { "username": "testuser" }
     ```
-  - Response: 
+  - Response:
     ```json
     { "message": "Reset token sent" }
     ```
 
-- **Reset password**
+- **Reset Password**
   - `POST /api/password_reset`
-  - Request: 
+  - Request:
     ```json
     { "reset_token": "your_reset_token", "new_password": "NewPass@1234" }
     ```
-  - Response: 
+  - Response:
     ```json
     { "message": "Password reset successfully" }
     ```
 
 ### 2. Role Management
-- **Create a role**
+- **Create a Role**
   - `POST /api/roles`
-  - Request: 
+  - Request:
     ```json
     { "role_name": "admin" }
     ```
-  - Response: 
+  - Response:
     ```json
     { "message": "Role created", "role": { "id": 1, "role_name": "admin" }}
     ```
-  - **Error:** 
+  - **Error:**
     ```json
     { "error": "Role already exists" }
     ```
 
-- **Assign a role to a user**
+- **Assign a Role to a User**
   - `POST /api/user_roles`
-  - Request: 
+  - Request:
     ```json
     { "user_id": 1, "role_id": 1 }
     ```
-  - Response: 
+  - Response:
     ```json
     { "message": "Role assigned to user" }
     ```
-  - **Error:** 
+  - **Error:**
     ```json
     { "error": "Role already assigned to user" }
     ```
 
 ### 3. Permission Check
-- **Check if user has a specific role**
+- **Check if User has a Specific Role**
   - `POST /api/check_permission`
-  - Request: 
+  - Request:
     ```json
     { "username": "testuser", "role_name": "admin" }
     ```
-  - Response: 
+  - Response:
     ```json
     { "message": "Permission granted" }
     ```
@@ -128,46 +128,21 @@ This project (deparja) provides an **Identity and Access Management (IAM)** syst
     ```
 
 ### 4. Secure Endpoint (JWT Protected)
-- **Access secure data (requires valid JWT token)**
+- **Access Secure Data (requires valid JWT token)**
   - `GET /api/secure-data`
   - Headers: `Authorization: Bearer your_jwt_token`
-  - Response: 
+  - Response:
     ```json
     { "secure_data": "This is protected data" }
     ```
-  - **Error:** 
+  - **Error:**
     ```json
     { "error": "Invalid token" }
     ```
 
 ## Security Features
-- **Password hashing** is used to securely store user passwords.
-- **JWT Authentication**: Access protected routes by including a valid JWT token in the Authorization header.
-
-## Missing or Needed Features for a Complete MVP
-
-### Testing
-- **Unit Tests**: I’ll write tests to check key features like creating users, assigning roles, and resetting passwords. This will make sure everything works as expected.
-- **Security Testing**: I’ll test endpoints like `/api/secure-data` to ensure unauthorized users can’t get access. I’ll also make sure the password reset flow is safe from abuse.
-
-### Logging and Monitoring
-- I’ll set up logging to track problems like failed logins, expired tokens, and security issues. This will help with debugging and keeping the system secure.
-- I’ll also think about adding rate-limiting or protection against brute-force attacks on the endpoints.
-
-### Documentation
-- I’ll document the API better with step-by-step instructions, like how to register, log in, reset passwords, and use roles and permissions.
-- Tools like Swagger or Postman could help make the documentation easier to use.
-
-## What’s Not Needed in the MVP (for now):
-
-### Full-fledged User Interface (UI):
-- A full UI with a front-end framework (e.g., React) is not essential for now - as we are building MVP. If your focus is on API functionality, the front-end could be minimal or nonexistent for now.
-
-### Advanced Auditing and Logging:
-- While logging is important, advanced auditing of user actions may not be necessary at the MVP stage.
-
-### Complex Workflow for Permissions:
-- For simplicity, start with a basic permissions structure and keep it flexible for future iterations.
+- **Password Hashing**: Ensures that user passwords are stored securely.
+- **JWT Authentication**: Used for securing API endpoints and ensuring only authorized users can access them.
 
 ## How to Run
 1. Clone the repository:

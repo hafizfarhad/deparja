@@ -21,6 +21,14 @@ def decode_jwt(token, secret=None):
         return {"error": "Token has expired"}
     except jwt.InvalidTokenError:
         return {"error": "Invalid token"}
+        # Inside decode_jwt in utils.py
+    except jwt.ExpiredSignatureError:
+        logging.warning("Expired token detected")
+        return {"error": "Token has expired"}
+    except jwt.InvalidTokenError:
+        logging.error("Invalid token detected")
+        return {"error": "Invalid token"}
+
 
 import re
 

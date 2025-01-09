@@ -3,8 +3,28 @@ from .models import User, Role, Permission, UserRole, RolePermission
 from .utils import generate_jwt, decode_jwt
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 bp = Blueprint('routes', __name__)
+limiter = Limiter(
+    get_remote_address,
+    app=current_app,
+    default_limits=["200 per day", "50 per hour"],  # Default rate limits
+)
+
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,  # Change to DEBUG for more verbosity
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("app.log"),  # Logs to a file
+        logging.StreamHandler()         # Logs to the console
+    ]
+)
+
 
 # Add User
 @bp.route('/api/users', methods=['POST'])  # Corrected to allow POST
@@ -153,6 +173,7 @@ def check_permission():
 
 # Login
 @bp.route('/api/login', methods=['POST'])
+@limiter.limit("5 per minute")  # Limit login attempts
 def login():
     data = request.json
     username = data.get('username')
@@ -161,6 +182,12 @@ def login():
     user = User.query.filter_by(username=username).first()
     if not user or not user.check_password(password):
         return jsonify({"error": "Invalid username or password"}), 401
+    
+    # Inside login route
+    if not user or not user.check_password(password):
+        logging.warning(f"Failed login attempt for username: {username}")
+        return jsonify({"error": "Invalid username or password"}), 401
+
 
     access_token = generate_jwt({"user_id": user.id}, current_app.config["JWT_ACCESS_TOKEN_EXPIRES"])
     refresh_token = generate_jwt({"user_id": user.id}, current_app.config["JWT_REFRESH_TOKEN_EXPIRES"])
@@ -197,6 +224,7 @@ def requires_permission(permission_name):
             if not permission:
                 return jsonify({"error": "Permission not found"}), 404
 
+
             role_permissions = RolePermission.query.filter_by(permission_id=permission.id).all()
             role_ids_with_permission = [rp.role_id for rp in role_permissions]
 
@@ -205,6 +233,10 @@ def requires_permission(permission_name):
 
             return f(*args, **kwargs)
         return wrapper
+        # Inside requires_permission decorator
+        if not any(UserRole.query.filter_by(user_id=user_id, role_id=role_id).first() for role_id in role_ids_with_permission):
+            logging.warning(f"Permission denied for user_id: {user_id} for permission: {permission_name}")
+            return jsonify({"error": "Permission denied"}), 403
     return decorator
 
 @bp.route('/api/secure-data', methods=['GET'])
