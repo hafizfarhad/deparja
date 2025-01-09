@@ -17,10 +17,22 @@ This project (deparja) provides an **Identity and Access Management (IAM)** syst
   - Password hashing (via `werkzeug.security`)
   - JWT-based authentication for secured endpoints
 
-- **Permissions**: I’ve added roles, but I still need to manage permissions more precisely. For example, I need to define permissions like "create_user" or "view_reports" and assign them to roles.
+- **Permissions**: I’ve added roles, and manage permissions more precisely. For example, I've defined permissions like "create_user" or "view_reports" and assigned them to roles.
 - **Access Control Logic**: I need to make sure users can only do what their roles and permissions allow. For instance, if someone tries to access `/api/secure-data`, I’ll add logic to check their permissions first.
 
 - I need to fully implement JWT token validation. Endpoints that require a token, like `/api/secure-data`, should check if the token is valid and hasn’t expired. Some of this is done, but I’ll make sure it works consistently.
+
+- **Error Handling & Responses**
+- I’ll improve error messages to make them clear and user-friendly. Right now, some error cases, like missing data or invalid tokens, don’t have great responses.
+- For `/api/roles` and `/api/user_roles`, I’ll handle duplicate roles or role assignments better by returning specific error messages (like "400 Bad Request").
+
+- **User and Role Management**
+- I’ll add features to update and delete users or roles, like `/api/users/{id}` or `/api/roles/{id}`.
+- I’ll also allow removing role assignments, for example with `/api/user_roles/{user_id}/{role_id}`.
+
+- **Password Hashing and Security**
+- I already hash passwords before saving them, but I’ll double-check to ensure no plain-text passwords are ever exposed anywhere.
+
 
 ## Endpoints
 ### 1. User Management
@@ -133,17 +145,6 @@ This project (deparja) provides an **Identity and Access Management (IAM)** syst
 - **JWT Authentication**: Access protected routes by including a valid JWT token in the Authorization header.
 
 ## Missing or Needed Features for a Complete MVP
-
-### Error Handling & Responses
-- I’ll improve error messages to make them clear and user-friendly. Right now, some error cases, like missing data or invalid tokens, don’t have great responses.
-- For `/api/roles` and `/api/user_roles`, I’ll handle duplicate roles or role assignments better by returning specific error messages (like "400 Bad Request").
-
-### User and Role Management
-- I’ll add features to update and delete users or roles, like `/api/users/{id}` or `/api/roles/{id}`.
-- I’ll also allow removing role assignments, for example with `/api/user_roles/{user_id}/{role_id}`.
-
-### Password Hashing and Security
-- I already hash passwords before saving them, but I’ll double-check to ensure no plain-text passwords are ever exposed anywhere.
 
 ### Testing
 - **Unit Tests**: I’ll write tests to check key features like creating users, assigning roles, and resetting passwords. This will make sure everything works as expected.

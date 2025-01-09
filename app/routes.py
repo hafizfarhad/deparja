@@ -25,6 +25,33 @@ def add_user():
     db.session.commit()
     return jsonify({"message": "User created", "user": {"id": user.id, "username": user.username}}), 201
 
+@bp.route('/api/users/<int:id>', methods=['PUT'])
+def update_user(id):
+    data = request.json
+    username = data.get('username')
+
+    if not username:
+        return jsonify({"error": "Username is required"}), 400
+
+    user = User.query.get(id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    user.username = username
+    db.session.commit()
+    return jsonify({"message": "User updated", "user": {"id": user.id, "username": user.username}}), 200
+
+@bp.route('/api/users/<int:id>', methods=['DELETE'])
+def delete_user(id):
+    user = User.query.get(id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({"message": "User deleted"}), 200
+
+
 # Add Role
 @bp.route('/api/roles', methods=['POST'])
 def add_role():
@@ -42,6 +69,34 @@ def add_role():
     db.session.commit()
     return jsonify({"message": "Role created", "role": {"id": role.id, "role_name": role.role_name}}), 201
 
+@bp.route('/api/roles/<int:id>', methods=['PUT'])
+def update_role(id):
+    data = request.json
+    role_name = data.get('role_name')
+
+    if not role_name:
+        return jsonify({"error": "Role name is required"}), 400
+
+    role = Role.query.get(id)
+    if not role:
+        return jsonify({"error": "Role not found"}), 404
+
+    role.role_name = role_name
+    db.session.commit()
+    return jsonify({"message": "Role updated", "role": {"id": role.id, "role_name": role.role_name}}), 200
+
+
+@bp.route('/api/roles/<int:id>', methods=['DELETE'])
+def delete_role(id):
+    role = Role.query.get(id)
+    if not role:
+        return jsonify({"error": "Role not found"}), 404
+
+    db.session.delete(role)
+    db.session.commit()
+    return jsonify({"message": "Role deleted"}), 200
+
+
 # Assign Role to User
 @bp.route('/api/user_roles', methods=['POST'])
 def assign_role():
@@ -49,8 +104,11 @@ def assign_role():
     user_id = data.get('user_id')
     role_id = data.get('role_id')
 
-    if not user_id or not role_id:
-        return jsonify({"error": "User ID and Role ID are required"}), 400
+    if not User.query.get(user_id):
+        return jsonify({"error": f"User with ID {user_id} does not exist"}), 404
+
+    if not Role.query.get(role_id):
+        return jsonify({"error": f"Role with ID {role_id} does not exist"}), 404
 
     if UserRole.query.filter_by(user_id=user_id, role_id=role_id).first():
         return jsonify({"error": "Role already assigned to user"}), 400
@@ -59,6 +117,17 @@ def assign_role():
     db.session.add(user_role)
     db.session.commit()
     return jsonify({"message": "Role assigned to user", "user_role": {"user_id": user_id, "role_id": role_id}}), 201
+
+@bp.route('/api/user_roles/<int:user_id>/<int:role_id>', methods=['DELETE'])
+def remove_role_assignment(user_id, role_id):
+    user_role = UserRole.query.filter_by(user_id=user_id, role_id=role_id).first()
+    if not user_role:
+        return jsonify({"error": "Role assignment not found"}), 404
+
+    db.session.delete(user_role)
+    db.session.commit()
+    return jsonify({"message": "Role assignment removed"}), 200
+
 
 # Check RBAC Permission
 @bp.route('/api/check_permission', methods=['POST'])
